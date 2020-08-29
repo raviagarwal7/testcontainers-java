@@ -17,8 +17,11 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.testcontainers.dockerclient.DockerClientProviderStrategy;
 import org.testcontainers.dockerclient.DockerMachineClientProviderStrategy;
+import com.github.dockerjava.core.DockerClientConfig;
 import org.testcontainers.images.TimeLimitedLoggedPullImageResultCallback;
 import org.testcontainers.utility.ComparableVersion;
 import org.testcontainers.utility.MountableFile;
@@ -35,6 +38,7 @@ import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.net.URI;
 
 /**
  * Singleton class that provides initialized Docker clients.
@@ -125,6 +129,27 @@ public class DockerClientFactory {
 
         strategy = DockerClientProviderStrategy.getFirstValidStrategy(configurationStrategies);
         return strategy;
+    }
+
+    @UnstableAPI
+    public DockerClientConfig getDockerCLientConfig() {
+        return getOrInitializeStrategy().getDockerClientConfig();
+    }
+
+    @UnstableAPI
+    public String getRemoteDockerUnixSocketPath() {
+        String dockerSocketOverride = System.getenv("TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE");
+        if (!StringUtils.isBlank(dockerSocketOverride)) {
+            return dockerSocketOverride;
+        }
+
+        URI dockerHost = getDockerCLientConfig().getDockerHost();
+        String path = "unix".equals(dockerHost.getScheme())
+            ? dockerHost.getRawPath()
+            : "/var/run/docker.sock";
+        return SystemUtils.IS_OS_WINDOWS
+               ? "/" + path
+               : path;
     }
 
     /**

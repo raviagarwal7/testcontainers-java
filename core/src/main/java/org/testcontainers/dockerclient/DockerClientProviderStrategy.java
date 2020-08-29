@@ -72,6 +72,10 @@ public abstract class DockerClientProviderStrategy {
         return 0;
     }
 
+    public DockerClientConfig getDockerClientConfig() {
+        return config;
+    }
+
     /**
      * Determine the right DockerClientConfig to use for building clients by trial-and-error.
      *

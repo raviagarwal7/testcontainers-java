@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.testcontainers.DockerClientFactory;
 
 /**
  * <p>Container for Atlassian Labs Localstack, 'A fully functional local AWS cloud stack'.</p>
@@ -43,7 +44,7 @@ public class LocalStackContainer extends GenericContainer<LocalStackContainer> {
     public LocalStackContainer(String version) {
         super(TestcontainersConfiguration.getInstance().getLocalStackImage() + ":" + version);
 
-        withFileSystemBind("//var/run/docker.sock", "/var/run/docker.sock");
+        withFileSystemBind(DockerClientFactory.instance().getRemoteDockerUnixSocketPath(), "/var/run/docker.sock");
         waitingFor(Wait.forLogMessage(".*Ready\\.\n", 1));
     }
 
